@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Remote terminal</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css" />
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/addons/attach/attach.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.3.0/lib/xterm-addon-fit.js"></script> 
+
+        <style>
+            .terminal {
+                padding: 12px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="terminal"></div>
+        <button id="clear">Clear terminal</button>
+        <script>
+            var term = new Terminal();
+            const fitAddon = new FitAddon.FitAddon();
+
+            term.loadAddon(fitAddon);
+            term.open(document.getElementById('terminal'));
+
+            var x;
+            var cont_id;
+            var onPort;
+            var ws;
+            // TODO: Add a support for docker so the url will be: ws//hostname:3000/:dcokerContainerId
+            async function s() {
+                await fetch('http://localhost:6700/get_container_id')
+                .then(res => res.json())
+                .then(res => {x = res.cont_id;onPort = res.port})
+                cont_id = x;
+                alert(cont_id)
+                ws = new WebSocket(location.protocol.replace('http', 'ws') + '//' + location.hostname + (onPort ? (':' + onPort) : '') + `/run?containerId=${cont_id}`);
+                console.log(ws.url)
+    
+                ws.onopen = function() {
+                    new attach.attach(term, ws);
+                };
+                
+                ws.onerror = function(e) {
+                    console.log(e);
+                };
+                document.querySelector('#clear').addEventListener('click', async () => {
+                    term.clear();
+                })
+    
+                term.on('resize', () => alert())
+            }
+            s();
+
+            window.addEventListener('beforeunload', async (e) => {
+                e.preventDefault()
+                await fetch(`http://localhost:6700/kill_container?cont_id=${cont_id}`, {method: 'POST'})
+                e.returnValue = '';
+            })
+        </script>
+    </body>
+</html>
