@@ -8,33 +8,27 @@ app.get('/get_container_id', async (req, res) => {
     let id = v4();
     let portID = randomIntFromInterval(4000, 7000); 
     
-    console.log('running container')
     const child = spawn('docker', ['run',`--name`, id, '-p',`${portID}:3000` , 'cw_virtual_runtime'])
-    child.stderr.on('data', m =>console.log(m.toString()))
-    console.log('finished running container') 
-    let ch = setInterval(
-        () => {
+    child.stderr.on('data', m =>console.log(m.toString())) 
+    let ch = setInterval(() => {
             let checker = spawn('docker', ['container', 'inspect', `${id}`])
             checker.on('exit', (code) => {
                 if(code == 0) {
-                    console.log('Bye boi')
+                    console.log(`Started container ${id}.`)
                     clearInterval(ch)
                     res.send({'cont_id': id, 'port': portID})
                 }
             })
-        }, 1500
-    )
+        }, 1500)
 })
 
 app.post('/kill_container', async (req, res) => {
-    let containerId = (url.parse(req.url, true).query.cont_id);
-    console.log(containerId)
-
+    var containerId = (url.parse(req.url, true).query.cont_id);
     let ch = setInterval(() => {
         let checker = spawn('docker', ['rm', '-f', `${containerId}`])
         checker.on('exit', (code) => {
             if(code == 0) {
-                console.log('Im dying.')
+                console.log(`Removed container ${containerId}.`)
                 clearInterval(ch)
                 res.send({
                     status: 'success',
