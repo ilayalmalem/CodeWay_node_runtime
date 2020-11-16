@@ -1,4 +1,4 @@
-const Terminal = require("./terminal.class.js").Terminal;
+const Terminal = require('./terminal.class.js').Terminal;
 const { spawn } = require('child_process');
 
 let terminalServer = new Terminal({

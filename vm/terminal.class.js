@@ -86,10 +86,7 @@ class Terminal {
 
             this.wss.on('connection', (ws, req) => {
                 this.containerId = (url.parse(req.url, true).query.containerId);
-                console.log(this.containerId)
-                // TODO: create the docker container, and connect the socket to it
-
-                this.tty.write('\r')
+                console.log(`[${containerId}] container WebSocket server is up.`)
                 this.onopened();
                 ws.on('message', (msg) => {
                     if (msg.startsWith("ESCAPED|-- ")) {

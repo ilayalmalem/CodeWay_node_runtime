@@ -30,6 +30,7 @@
                 ws = new WebSocket(location.protocol.replace('http', 'ws') + '//' + location.hostname + (onPort ? (':' + onPort) : '') + `/run?containerId=${cont_id}`);
                 ws.onopen = function() {
                     new attach.attach(term, ws);
+                    ws.send('export PS1="\\[$(tput bold)\\]\\[\\033[38;5;43m\\]\\\$\\[$(tput sgr0)\\]:\\w \\[$(tput sgr0)\\]"\rclear\r')
                 };
                 ws.onerror = function(e) {
                     console.log(e);
@@ -40,6 +41,7 @@
                 term.on('resize', () => alert())
             }
             s();
+            // term.setOption('theme', {background: 'rgb(13, 16, 30)'})
             window.addEventListener('beforeunload', async (e) => {
                 e.preventDefault()
                 await fetch(`http://localhost:6700/kill_container?cont_id=${cont_id}`, {method: 'POST'})
